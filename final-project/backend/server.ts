@@ -25,7 +25,12 @@ app.use("/groups", verifyTokenHandler, groupsRouter);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 app.use("/receipts", express.static(path.join(__dirname, "uploads")));
 
-app.use("/images", express.static(path.join(path.dirname(fileURLToPath(import.meta.url)), "uploads2")));
+app.use(
+  "/images",
+  express.static(
+    path.join(path.dirname(fileURLToPath(import.meta.url)), "user-images")
+  )
+);
 
 app.all("*", noRouteHandler);
 app.use(errorHandler);

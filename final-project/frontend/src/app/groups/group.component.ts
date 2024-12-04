@@ -1,28 +1,28 @@
-import {Component, inject, OnInit, signal} from '@angular/core';
-import {MatProgressBarModule} from "@angular/material/progress-bar";
-import {MatIconModule} from "@angular/material/icon";
-import {MatDividerModule} from "@angular/material/divider";
-import {MatButtonModule} from "@angular/material/button";
-import {GroupsService} from "./services/groups.service";
-import {ActivatedRoute, Router} from "@angular/router";
-import {MatDialog} from "@angular/material/dialog";
-import {Title} from "@angular/platform-browser";
-import IFilter from "./types/filter.interface";
-import ITransaction from "./types/transaction.interface";
-import IFullGroup from "./types/full-group.inteface";
-import IMember from "./types/member.interface";
-import IFilterDialog from "./types/filter-dialog.inteface";
-import IResponse from "../types/response.inteface";
-import {catchError, throwError} from "rxjs";
-import {TransactionCardComponent} from "./transaction-card.component";
-import {MemberCardComponent} from "./member-card.component";
-import {CurrencyPipe, TitleCasePipe} from "@angular/common";
-import {MemberBalancePipe} from "./pipes/member-balance.pipe";
-import {MemberSpentPipe} from "./pipes/member-spent.pipe";
-import {AddMemberDialogComponent} from "./add-member-dialog.component";
-import {BalanceColorDirective} from "./directive/balance-color.directive";
-import {AddTransactionDialogComponent} from "./add-transaction-dialog.component";
-import {FilterDialogComponent} from "./filter-dialog.component";
+import { Component, inject, OnInit, signal } from '@angular/core';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatIconModule } from '@angular/material/icon';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatButtonModule } from '@angular/material/button';
+import { GroupsService } from './services/groups.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
+import { Title } from '@angular/platform-browser';
+import IFilter from './types/filter.interface';
+import ITransaction from './types/transaction.interface';
+import IFullGroup from './types/full-group.inteface';
+import IMember from './types/member.interface';
+import IFilterDialog from './types/filter-dialog.inteface';
+import IResponse from '../types/response.inteface';
+import { catchError, throwError } from 'rxjs';
+import { TransactionCardComponent } from './transaction-card.component';
+import { MemberCardComponent } from './member-card.component';
+import { CurrencyPipe, TitleCasePipe } from '@angular/common';
+import { MemberBalancePipe } from './pipes/member-balance.pipe';
+import { MemberSpentPipe } from './pipes/member-spent.pipe';
+import { AddMemberDialogComponent } from './add-member-dialog.component';
+import { BalanceColorDirective } from './directive/balance-color.directive';
+import { AddTransactionDialogComponent } from './add-transaction-dialog.component';
+import { FilterDialogComponent } from './filter-dialog.component';
 
 @Component({
   selector: 'app-group',
@@ -38,25 +38,23 @@ import {FilterDialogComponent} from "./filter-dialog.component";
     CurrencyPipe,
     MemberBalancePipe,
     MemberSpentPipe,
-    BalanceColorDirective
+    BalanceColorDirective,
   ],
   template: `
     @if ($isLoading()) {
-      <div class="fixed full-width">
-        <mat-progress-bar mode="indeterminate"/>
-      </div>
+    <div class="fixed full-width">
+      <mat-progress-bar mode="indeterminate" />
+    </div>
     }
 
     <div class="screen-margin flex column">
       <div class="flex align-center">
         <mat-icon class="m-2" (click)="router.navigate(['../'])"
-        >arrow_backward
-        </mat-icon
-        >
+          >arrow_backward
+        </mat-icon>
         <h2 class="remove-margin">{{ $group().title | titlecase }}</h2>
-
       </div>
-      <mat-divider/>
+      <mat-divider />
 
       <div class="mt-2">
         <div class="flex justify-between align-center">
@@ -74,16 +72,15 @@ import {FilterDialogComponent} from "./filter-dialog.component";
 
       <div class="mt-2">
         @if ($group().members.length) {
-          <div class="gap-5 grid mt-2">
-            @for (member of $group().members; track member._id) {
-              <app-member-card
-                class="align-center card-container"
-                [$member]="member"
-              />
-            }
-          </div>
+        <div class="gap-5 grid mt-2">
+          @for (member of $group().members; track member._id) {
+          <app-member-card
+            class="align-center card-container"
+            [$member]="member"
+          />
+          }
+        </div>
         }
-
       </div>
 
       <div class="mt-4">
@@ -94,11 +91,12 @@ import {FilterDialogComponent} from "./filter-dialog.component";
             <mat-icon
               class="ml-2"
               (click)="$isTransactionsOpen.set(!$isTransactionsOpen())"
-            >{{
-                $isTransactionsOpen() ? 'keyboard_arrow_up' : 'keyboard_arrow_down'
+              >{{
+                $isTransactionsOpen()
+                  ? 'keyboard_arrow_up'
+                  : 'keyboard_arrow_down'
               }}
-            </mat-icon
-            >
+            </mat-icon>
           </h3>
           <button
             mat-fab
@@ -111,63 +109,45 @@ import {FilterDialogComponent} from "./filter-dialog.component";
         </div>
       </div>
       @if ($isTransactionsOpen()) {
+      <div>
+        @if ($group().transactions.length) {
+        <div class="flex align-center justify-between mt-2 mb-3">
+          <div class="search-container">
+            <input
+              type="text"
+              name="search"
+              placeholder="Search by title"
+              class="search-input"
+              (keyup)="handleSearchChange($event)"
+            />
+            <mat-icon>search</mat-icon>
+          </div>
+          <mat-icon class="m-3" (click)="openFilterDialog()"
+            >filter_list
+          </mat-icon>
+        </div>
+        } @if ($group().transactions.length) {
         <div>
-          @if ($group().transactions.length) {
-            <div
-              class="flex align-center justify-between mt-2 mb-3"
-
-            >
-              <div class="search-container">
-                <input
-                  type="text"
-                  name="search"
-                  placeholder="Search by title"
-                  class="search-input"
-                  (keyup)="handleSearchChange($event)"
-                />
-                <mat-icon>search</mat-icon>
-              </div>
-              <mat-icon class="m-3" (click)="openFilterDialog()"
-              >filter_list
-              </mat-icon
-              >
-            </div>
-          }
-
-
-          @if ($group().transactions.length) {
-            <div>
-              @if (filteredTransactions().length) {
-                <div
-                  class="gap-4 transaction-grid mt-2"
-
-                >
-                  @for (item of filteredTransactions(); track item._id) {
-                    <app-transaction-card
-                      [$transaction]="item"
-                    />
-                  }
-
-                </div>
-
-              } @else {
-                <div>
-                  <h1 class="text-center">No results!</h1>
-                </div>
-              }
-
-            </div>
+          @if (filteredTransactions().length) {
+          <div class="gap-4 transaction-grid mt-2">
+            @for (item of filteredTransactions(); track item._id) {
+            <app-transaction-card [$transaction]="item" />
+            }
+          </div>
 
           } @else {
-            @if (!$isLoading()) {
-              <div>
-                <h1 class="text-center">No transactions yet!</h1>
-              </div>
-            }
+          <div>
+            <h1 class="text-center">No results!</h1>
+          </div>
           }
-
-
         </div>
+
+        } @else { @if (!$isLoading()) {
+        <div>
+          <h1 class="text-center">No transactions yet!</h1>
+        </div>
+        } }
+      </div>
 
       }
 
@@ -176,48 +156,43 @@ import {FilterDialogComponent} from "./filter-dialog.component";
           <h3 class="flex align-center">
             Split balance report
 
-            <mat-icon class="ml-2" (click)="$isSplitOpen.set(!$isSplitOpen())  ">{{
+            <mat-icon class="ml-2" (click)="$isSplitOpen.set(!$isSplitOpen())"
+              >{{
                 $isSplitOpen() ? 'keyboard_arrow_up' : 'keyboard_arrow_down'
               }}
             </mat-icon>
           </h3>
         </div>
         @if ($isSplitOpen()) {
-          <div>
-            @if ($group().transactions.length) {
-              <div
-                class="flex column"
-
+        <div>
+          @if ($group().transactions.length) {
+          <div class="flex column">
+            @for (member of $group().members; track member._id) {
+            <label class="p-1 pb-2">
+              {{ member.fullname }} spent
+              <strong>{{
+                member | memberSpent : $group() | currency : 'USD'
+              }}</strong>
+              in total => owes
+              <strong
+                balanceColor
+                [$balance]="member | memberBalance : $group()"
+                >{{
+                  member | memberBalance : $group() | currency : 'USD'
+                }}</strong
               >
-                @for (member of $group().members; track member._id) {
-                  <label class="p-1 pb-2">
-                    {{ member.fullname }} spent
-                    <strong>{{
-                        member | memberSpent : $group() | currency : 'USD'
-                      }}</strong>
-                    in total => owes
-                    <strong balanceColor [$balance]="member | memberBalance : $group()">{{
-                        member | memberBalance : $group() | currency : 'USD'
-                      }}</strong>
-                  </label>
-                }
-
-              </div>
-            } @else {
-              @if (!$isLoading()) {
-                <div>
-                  <h1 class="text-center">No transactions yet!</h1>
-                </div>
-              }
-
+            </label>
             }
-
           </div>
+          } @else { @if (!$isLoading()) {
+          <div>
+            <h1 class="text-center">No transactions yet!</h1>
+          </div>
+          } }
+        </div>
 
         }
-
       </div>
-
     </div>
   `,
   styles: [
@@ -265,7 +240,6 @@ import {FilterDialogComponent} from "./filter-dialog.component";
   ],
 })
 export class GroupComponent implements OnInit {
-
   #groups = inject(GroupsService);
   #activeRoute = inject(ActivatedRoute);
   #dialog = inject(MatDialog);
@@ -299,7 +273,7 @@ export class GroupComponent implements OnInit {
   }
 
   getData() {
-    this.$isLoading.set(true)
+    this.$isLoading.set(true);
     this.#groups
       .getGroupById(this.$groupId())
       .pipe(
@@ -311,11 +285,10 @@ export class GroupComponent implements OnInit {
         })
       )
       .subscribe((res: IResponse<IFullGroup>) => {
-
         this.$group.set(res.data);
         this.#title.setTitle(`Group - ${res.data.title}`);
         this.filteredTransactions.set(res.data.transactions);
-        this.$isLoading.set(false)
+        this.$isLoading.set(false);
       });
   }
 
@@ -356,7 +329,7 @@ export class GroupComponent implements OnInit {
     this.#dialog.open(FilterDialogComponent, {
       width: '250px',
       height: '100%',
-      position: {left: '0', top: '0'},
+      position: { left: '0', top: '0' },
       data,
     });
   }
@@ -366,15 +339,16 @@ export class GroupComponent implements OnInit {
     this.$search.set(target.value);
     const temp = [...this.$group().transactions];
     this.filteredTransactions.set(
-      temp.filter(({title}) =>
+      temp.filter(({ title }) =>
         title.toLowerCase().includes(target.value.toLowerCase())
       )
     );
   }
 
   ngOnInit() {
-    this.$groupId.set(this.#activeRoute.snapshot.paramMap.get('group_id') as string)
+    this.$groupId.set(
+      this.#activeRoute.snapshot.paramMap.get('group_id') as string
+    );
     this.getData();
   }
-
 }
